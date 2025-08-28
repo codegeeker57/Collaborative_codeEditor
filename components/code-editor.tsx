@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import * as monaco from 'monaco-editor';
 import { useCollaborationStore } from '@/lib/collaboration-store';
 import { getLanguageConfig } from '@/lib/languages';
+
+// Dynamic import for Monaco Editor to avoid SSR issues
+let monaco: typeof import('monaco-editor') | null = null;
 
 export function CodeEditor() {
   const editorRef = useRef<HTMLDivElement>(null);
@@ -11,8 +13,14 @@ export function CodeEditor() {
   const { code, language, setCode, users, currentUser } = useCollaborationStore();
 
   useEffect(() => {
-    // Configure Monaco Environment for web workers
-    if (typeof window !== 'undefined') {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
+    // Dynamically import Monaco Editor
+    import('monaco-editor').then((monacoModule) => {
+      monaco = monacoModule;
+      
+      // Configure Monaco Environment for web workers
       (self as any).MonacoEnvironment = {
         getWorkerUrl: function (moduleId: string, label: string) {
           if (label === 'json') {
@@ -30,11 +38,10 @@ export function CodeEditor() {
           return '/_next/static/editor.worker.js';
         }
       };
-    }
 
-    if (editorRef.current && !editorInstance.current) {
-      // Initialize Monaco Editor
-      editorInstance.current = monaco.editor.create(editorRef.current, {
+      if (editorRef.current && !editorInstance.current && monaco) {
+        // Initialize Monaco Editor
+        editorInstance.current = monaco.editor.create(editorRef.current, {
         value: code,
         language: language,
         theme: 'vs-dark',
@@ -62,6 +69,8 @@ export function CodeEditor() {
         parameterHints: { enabled: true },
         formatOnPaste: true,
         formatOnType: true,
+        // Disable sticky scroll to prevent line number errors
+        stickyScroll: { enabled: false },
       });
 
       // Listen for content changes
@@ -76,6 +85,7 @@ export function CodeEditor() {
         console.log('Cursor position changed:', e.position);
       });
     }
+    });
 
     return () => {
       if (editorInstance.current) {
@@ -87,16 +97,20 @@ export function CodeEditor() {
 
   // Update editor language when changed
   useEffect(() => {
+    if (typeof window === 'undefined' || !monaco) return;
+    
     if (editorInstance.current) {
       const model = editorInstance.current.getModel();
       if (model) {
         monaco.editor.setModelLanguage(model, language);
       }
     }
-  }, [language]);
+  }, [language, monaco]);
 
   // Update editor content when code changes from external source
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     if (editorInstance.current && editorInstance.current.getValue() !== code) {
       editorInstance.current.setValue(code);
     }

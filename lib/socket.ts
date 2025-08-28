@@ -1,5 +1,18 @@
-// Mock Socket.io implementation for development
-// In production, this would connect to a real Socket.io server
+// Mock Socket.io implementation for collaborative features
+
+type EventCallback = (...args: any[]) => void;
+
+type EventMap = {
+  'join-session': (sessionId: string, username: string) => void;
+  'code-change': (code: string) => void;
+  'language-change': (language: string) => void;
+  'cursor-change': (userId: string, cursor: { line: number; column: number }) => void;
+  'chat-message': (message: { id: string; sender: string; text: string; timestamp: number }) => void;
+  'run-code': (code: string, language: string) => void;
+  'create-event': (event: any) => void;
+  'update-event': (event: any) => void;
+  'delete-event': (eventId: string) => void;
+};
 
 export interface SocketConnection {
   connect: () => void;

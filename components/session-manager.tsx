@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { LogOut, Copy, Users } from 'lucide-react';
+import { LogOut, Copy, Users, Calendar } from 'lucide-react';
 import { useCollaborationStore } from '@/lib/collaboration-store';
 import { toast } from 'sonner';
 
@@ -58,6 +58,16 @@ export function SessionManager({ sessionId }: SessionManagerProps) {
           <div className="text-sm text-gray-400">
             Welcome, <span className="text-white font-medium">{currentUser?.username}</span>
           </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push(`/events`)}
+            className="text-blue-400 hover:bg-blue-500/10"
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Events
+          </Button>
           
           <Button
             variant="outline"

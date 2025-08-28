@@ -26,6 +26,16 @@ export interface ExecutionResult {
   executionTime: number;
 }
 
+export interface Event {
+  id: string;
+  title: string;
+  description: string;
+  date: Date;
+  time: string;
+  createdBy: string;
+  participants: string[];
+}
+
 interface CollaborationState {
   // Session
   sessionId: string | null;
@@ -45,6 +55,9 @@ interface CollaborationState {
   // Execution
   executionResult: ExecutionResult | null;
   
+  // Events
+  events: Event[];
+  
   // Actions
   setCurrentUser: (user: User) => void;
   joinSession: (sessionId: string) => void;
@@ -56,6 +69,12 @@ interface CollaborationState {
   setLanguage: (language: string) => void;
   addMessage: (message: Message) => void;
   setExecutionResult: (result: ExecutionResult | null) => void;
+  
+  // Event actions
+  addEvent: (event: Event) => void;
+  updateEvent: (event: Event) => void;
+  removeEvent: (eventId: string) => void;
+  getEvents: () => Event[];
 }
 
 export const useCollaborationStore = create<CollaborationState>((set, get) => ({
@@ -75,6 +94,7 @@ console.log(hello("CodeTribe"));`,
   language: 'javascript',
   messages: [],
   executionResult: null,
+  events: [],
 
   // Actions
   setCurrentUser: (user) => {
@@ -141,5 +161,29 @@ console.log(hello("CodeTribe"));`,
 
   setExecutionResult: (result) => {
     set({ executionResult: result });
+  },
+
+  // Event actions
+  addEvent: (event) => {
+    const { events } = get();
+    set({ events: [...events, event] });
+  },
+
+  updateEvent: (event) => {
+    const { events } = get();
+    set({
+      events: events.map(e => e.id === event.id ? event : e)
+    });
+  },
+
+  removeEvent: (eventId) => {
+    const { events } = get();
+    set({
+      events: events.filter(e => e.id !== eventId)
+    });
+  },
+
+  getEvents: () => {
+    return get().events;
   },
 }));

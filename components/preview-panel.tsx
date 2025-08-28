@@ -80,12 +80,19 @@ export function PreviewPanel() {
   }, [code, language, isWebLanguage]);
 
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
     if (iframeRef.current && previewContent) {
       const iframe = iframeRef.current;
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
       if (doc) {
         doc.open();
-        doc.write(previewContent);
+        try {
+          doc.write(previewContent);
+        } catch (error) {
+          console.error('Error writing to iframe:', error);
+        }
         doc.close();
       }
     }
